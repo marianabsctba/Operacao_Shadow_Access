@@ -1,0 +1,652 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-mono,'Courier New',monospace)}
+:root{--bg:#0a0e1a;--surface:#111827;--border:#1e2d40;--green:#00ff88;--red:#ff4444;--amber:#ffaa00;--blue:#4488ff;--purple:#aa44ff;--text:#c8d8e8;--muted:#4a6080}
+.app{background:var(--bg);color:var(--text);min-height:600px;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.logo{color:var(--green);font-weight:700;font-size:13px;letter-spacing:2px}
+.status-bar{display:flex;gap:12px;align-items:center;font-size:11px}
+.badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:1px}
+.badge-red{background:#ff444422;color:var(--red);border:1px solid #ff444444}
+.badge-green{background:#00ff8822;color:var(--green);border:1px solid #00ff8844}
+.badge-amber{background:#ffaa0022;color:var(--amber);border:1px solid #ffaa0044}
+.badge-blue{background:#4488ff22;color:var(--blue);border:1px solid #4488ff44}
+.main{display:grid;grid-template-columns:220px 1fr;height:560px}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:12px;overflow-y:auto}
+.sidebar-title{color:var(--muted);font-size:9px;letter-spacing:2px;margin-bottom:8px;padding:0 4px}
+.phase-btn{width:100%;text-align:left;background:none;border:none;color:var(--text);font-family:var(--font-mono,'Courier New',monospace);font-size:11px;padding:8px 10px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:8px;margin-bottom:2px;border:1px solid transparent}
+.phase-btn:hover{background:#1a2535;border-color:var(--border)}
+.phase-btn.active{background:#0f2040;border-color:var(--blue);color:#fff}
+.phase-btn.locked{opacity:0.3;cursor:not-allowed}
+.phase-btn.done{color:var(--green)}
+.phase-icon{font-size:14px;width:18px;text-align:center}
+.score-box{background:#0f1a0f;border:1px solid #00ff8833;border-radius:8px;padding:10px;margin-top:12px;text-align:center}
+.score-label{font-size:9px;color:var(--muted);letter-spacing:2px}
+.score-val{font-size:28px;font-weight:700;color:var(--green)}
+.content{display:flex;flex-direction:column;overflow:hidden}
+.phase-header{padding:14px 16px;border-bottom:1px solid var(--border);background:#0d1520}
+.phase-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px}
+.phase-desc{font-size:10px;color:var(--muted)}
+.terminal{flex:1;background:#06080f;padding:14px;overflow-y:auto;font-size:11px;line-height:1.7}
+.cli-line{color:var(--green);margin-bottom:2px}
+.cli-output{color:var(--text);margin-bottom:8px;padding-left:0}
+.cli-warn{color:var(--amber)}
+.cli-err{color:var(--red)}
+.cli-info{color:var(--blue)}
+.cli-comment{color:var(--muted)}
+.cli-highlight{color:var(--purple)}
+.bottom{padding:10px 14px;background:var(--surface);border-top:1px solid var(--border)}
+.question-area{margin-bottom:10px}
+.question-text{font-size:12px;color:var(--amber);margin-bottom:8px;font-weight:700}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.opt-btn{background:#111827;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono,'Courier New',monospace);font-size:10px;padding:8px 10px;border-radius:6px;cursor:pointer;text-align:left;transition:all 0.15s}
+.opt-btn:hover{border-color:var(--blue);background:#0f2040;color:#fff}
+.opt-btn.correct{border-color:var(--green);background:#00ff8811;color:var(--green)}
+.opt-btn.wrong{border-color:var(--red);background:#ff444411;color:var(--red)}
+.opt-btn:disabled{cursor:not-allowed}
+.feedback{font-size:10px;padding:8px 10px;border-radius:6px;margin-top:8px;line-height:1.5}
+.fb-correct{background:#00ff8811;border:1px solid #00ff8833;color:var(--green)}
+.fb-wrong{background:#ff444411;border:1px solid #ff444433;color:#ff8888}
+.next-btn{width:100%;background:var(--green);color:#000;border:none;font-family:var(--font-mono,'Courier New',monospace);font-size:11px;font-weight:700;padding:8px;border-radius:6px;cursor:pointer;letter-spacing:1px}
+.next-btn:hover{opacity:0.85}
+.mitre-tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;background:#aa44ff22;color:var(--purple);border:1px solid #aa44ff44;margin-right:4px;margin-bottom:4px}
+.cert-area{padding:20px;text-align:center}
+.cert-box{background:#0a1f0a;border:2px solid var(--green);border-radius:12px;padding:24px;max-width:460px;margin:0 auto}
+.cert-title{color:var(--green);font-size:16px;font-weight:700;letter-spacing:2px;margin-bottom:4px}
+.cert-sub{color:var(--muted);font-size:9px;letter-spacing:3px;margin-bottom:16px}
+.cert-name{color:#fff;font-size:14px;margin-bottom:8px}
+.cert-hash{color:var(--muted);font-size:9px;word-break:break-all;margin-bottom:12px}
+.cert-badge{display:inline-block;margin:3px;padding:4px 10px;border-radius:4px;font-size:9px;background:#00ff8811;border:1px solid #00ff8833;color:var(--green)}
+.cert-sig{color:var(--amber);font-size:11px;margin-top:16px;font-style:italic}
+.hint-btn{background:none;border:1px solid var(--muted);color:var(--muted);font-family:var(--font-mono,'Courier New',monospace);font-size:9px;padding:4px 8px;border-radius:4px;cursor:pointer;margin-left:8px}
+.hint-btn:hover{border-color:var(--amber);color:var(--amber)}
+.progress-bar{height:3px;background:var(--border);margin-bottom:12px;border-radius:2px}
+.progress-fill{height:100%;background:var(--green);border-radius:2px;transition:width 0.4s}
+.twist-box{background:#1a0a0a;border:1px solid #ff444433;border-radius:8px;padding:12px;margin:10px 0;font-size:10px;color:#ff8888}
+.twist-icon{color:var(--red);font-size:16px;margin-bottom:4px}
+.replay-line{animation:fadeIn 0.5s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.cert-input-wrap{max-width:460px;margin:0 auto 12px;text-align:left}
+.cert-label{display:block;color:#fff;font-weight:700;font-size:10px;letter-spacing:1px;margin-bottom:6px}
+.cert-input{width:100%;background:#06080f;border:1px solid var(--border);color:#fff;font-family:var(--font-mono,'Courier New',monospace);font-size:12px;padding:10px;border-radius:6px;outline:none}
+.cert-input:focus{border-color:var(--green);box-shadow:0 0 0 2px #00ff8822}
+.retry-btn{width:100%;background:#111827;color:var(--amber);border:1px solid var(--amber);font-family:var(--font-mono,'Courier New',monospace);font-size:11px;font-weight:700;padding:8px;border-radius:6px;cursor:pointer;letter-spacing:1px;margin-top:8px}
+.retry-btn:hover{background:#ffaa0011}
+.cert-note{font-size:9px;color:var(--muted);margin-top:6px;line-height:1.4}
+
+.cli-inputbar{background:#06080f;border-top:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:8px}
+.cli-prompt{color:var(--green);font-size:11px;font-weight:700}
+.cli-input{flex:1;background:#03050a;border:1px solid var(--border);color:var(--green);font-family:var(--font-mono,'Courier New',monospace);font-size:11px;padding:7px 9px;border-radius:6px;outline:none}
+.cli-input:focus{border-color:var(--green);box-shadow:0 0 0 2px #00ff8820}
+.cli-run{width:auto;background:#00ff88;color:#000;border:none;font-family:var(--font-mono,'Courier New',monospace);font-size:10px;font-weight:700;padding:7px 10px;border-radius:6px;cursor:pointer}
+.cli-run:hover{opacity:.85}
+.cli-help{font-size:9px;color:var(--muted);padding:4px 14px;background:#06080f}
+
+.intro-screen{background:radial-gradient(circle at top,#111827 0,#05070d 52%,#02030a 100%);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono,'Courier New',monospace);padding:38px 18px}
+.intro-card{max-width:920px;width:100%;background:#0a0e1add;border:1px solid var(--border);border-radius:18px;padding:30px;box-shadow:0 24px 80px #0008}
+.intro-kicker{display:inline-block;color:var(--red);border:1px solid #ff444455;background:#ff444411;border-radius:999px;padding:5px 10px;font-size:10px;font-weight:700;letter-spacing:2px;margin-bottom:14px}
+.intro-title{color:var(--green);font-size:28px;letter-spacing:2px;margin-bottom:8px}
+.intro-subtitle{color:var(--amber);font-size:13px;margin-bottom:18px;line-height:1.6}
+.intro-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin:18px 0}
+.intro-panel{background:#06080f;border:1px solid var(--border);border-radius:12px;padding:16px}
+.intro-panel h3{color:#fff;font-size:13px;margin-bottom:10px;letter-spacing:1px}
+.intro-panel p,.intro-panel li{font-size:12px;line-height:1.7;margin-bottom:8px}
+.intro-panel ul{padding-left:18px}
+.intro-red{color:#ff7777}.intro-amber{color:var(--amber)}.intro-green{color:var(--green)}.intro-muted{color:var(--muted)}
+.intro-rules{background:#10070a;border:1px solid #ff444433;border-radius:12px;padding:14px;margin:16px 0;font-size:12px;line-height:1.7}
+.intro-btn{width:100%;background:var(--green);color:#000;border:none;font-family:var(--font-mono,'Courier New',monospace);font-size:13px;font-weight:800;padding:14px;border-radius:10px;cursor:pointer;letter-spacing:1px;margin-top:8px}
+.intro-btn:hover{filter:brightness(.9)}
+@media(max-width:760px){.intro-grid{grid-template-columns:1fr}.intro-title{font-size:22px}.intro-card{padding:20px}}
+
+</style>
+
+
+<div id="intro-screen" class="intro-screen">
+  <div class="intro-card">
+    <div class="intro-kicker">INCIDENTE ATIVO • NÍVEL CRÍTICO</div>
+    <h1 class="intro-title">☠ OPERAÇÃO SHADOW ACCESS</h1>
+    <div class="intro-subtitle">Ambiente AWS + SaaS híbrido comprometido… e, como manda a tradição corporativa, todo mundo descobriu depois que o estrago já tinha começado.</div>
+
+    <div class="intro-grid">
+      <div class="intro-panel">
+        <h3>O QUE ESTÁ ACONTECENDO</h3>
+        <p>Você é o Security Engineer chamado para investigar uma sequência de eventos que cheira a acesso indevido, persistência e exfiltração.</p>
+        <p>O alerta chegou às <span class="intro-amber">23:47 UTC</span>. Naturalmente, ninguém queria ser pessimista… então agora você ganhou um incidente completo, com brinde regulatório.</p>
+        <ul>
+          <li>Usuário IAM criado fora do padrão.</li>
+          <li>Access key ativa usada de madrugada.</li>
+          <li>Bucket de staging surgindo do nada.</li>
+          <li>Origem em TOR exit node… porque o atacante pelo menos estudou o básico.</li>
+        </ul>
+      </div>
+
+      <div class="intro-panel">
+        <h3>SUA MISSÃO</h3>
+        <p>Investigar, correlacionar e responder. Não é para sair clicando igual quem reinicia servidor em produção para “ver se volta”.</p>
+        <ul>
+          <li>Descobrir o vetor inicial.</li>
+          <li>Identificar mecanismos de persistência.</li>
+          <li>Mapear dados acessados e impacto.</li>
+          <li>Remover o acesso do atacante.</li>
+          <li>Aplicar hardening para não virar reprise.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="intro-rules">
+      <p><strong class="intro-green">Como funciona:</strong> use a CLI simulada, leia os logs, rode comandos, responda às fases e avance na investigação.</p>
+      <p><strong class="intro-amber">Atenção:</strong> as alternativas foram feitas para parecerem corretas. A diferença está na evidência, na ordem de prioridade e no contexto. Ou seja… igual vida real, só que sem gerente perguntando “já resolveu?” a cada cinco minutos.</p>
+      <p><strong class="intro-red">Plot nada divertido:</strong> o atacante já está dentro há dias. Você não está prevenindo. Você está chegando atrasado com uma lanterna e um café frio.</p>
+    </div>
+
+    <button class="intro-btn" onclick="startChallenge()">INICIAR INVESTIGAÇÃO ▶</button>
+    <p class="intro-muted" style="text-align:center;font-size:10px;margin-top:14px">Shadow Access — Be Safe • Mariana BS (Instrutora)</p>
+  </div>
+</div>
+
+<div class="app" style="display:none">
+<div class="header">
+  <div class="logo">&#9760; OPERAÇÃO SHADOW ACCESS</div>
+  <div class="status-bar">
+    <span class="badge badge-red">INTRUSION DETECTED</span>
+    <span class="badge badge-amber">THREAT LEVEL: CRÍTICO</span>
+    <span id="timer-badge" class="badge badge-blue">00:00</span>
+  </div>
+</div>
+<div class="main">
+  <div class="sidebar">
+    <div class="sidebar-title">FASES DO INCIDENTE</div>
+    <div id="phase-list"></div>
+    <div class="score-box">
+      <div class="score-label">SCORE</div>
+      <div class="score-val" id="score-display">0%</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:2px" id="score-detail">0 / 0 corretas</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="phase-header">
+      <div class="phase-title" id="phase-title">Aguardando operativo...</div>
+      <div class="phase-desc" id="phase-desc">Selecione uma fase para iniciar a investigação</div>
+    </div>
+    <div class="terminal" id="terminal">
+      <div class="cli-comment"># Sistema de investigação inicializado</div>
+      <div class="cli-comment"># Alerta recebido do time de Threat Intelligence</div>
+      <div class="cli-comment"># Ambiente: AWS + SaaS híbrido</div>
+      <br>
+      <div class="cli-warn">⚡ ALERTA SIEM — 23:47 UTC</div>
+      <div class="cli-output">Atividade anômala detectada em múltiplos serviços</div>
+      <div class="cli-output">Usuário IAM criado fora do padrão: <span class="cli-err">svc-backup-temp-01</span></div>
+      <div class="cli-output">Acesso ao bucket <span class="cli-highlight">company-financial-data</span>: 03:12 UTC</div>
+      <div class="cli-output">Token usado de IP: <span class="cli-err">185.220.101.47</span> (Tor exit node)</div>
+      <br>
+      <div class="cli-comment"># Selecione uma fase no menu lateral para começar</div>
+      <div class="cli-comment"># Spoiler: alguém está dentro há dias. Boa sorte.</div>
+    </div>
+    <div class="cli-inputbar">
+      <span class="cli-prompt">operator@shadow:~$</span>
+      <input id="cli-input" class="cli-input" autocomplete="off" spellcheck="false" placeholder="digite um comando... ex: help, aws iam list-users, aws s3 ls">
+      <button class="cli-run" onclick="runCliCommand()">EXECUTAR</button>
+    </div>
+    <div class="cli-help">CLI simulada funcional: aceita comandos AWS/JQ do laboratório, help, clear, whoami e respostas coerentes por cenário.</div>
+    <div class="bottom" id="bottom-area">
+      <div style="text-align:center;color:var(--muted);font-size:11px">&#9658; Selecione uma fase para iniciar</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const BUILD_SALT = "ShadowAccess-BeSafe-2026-Salt-v3";
+const SESSION_SALT = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b=>b.toString(16).padStart(2,'0')).join('');
+
+function xorB64Decode(payload){
+  const bin = atob(payload);
+  const bytes = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i) ^ BUILD_SALT.charCodeAt(i % BUILD_SALT.length);
+  return new TextDecoder().decode(bytes);
+}
+
+function sessionWrap(value){
+  let out = '';
+  for(let i=0;i<value.length;i++) out += String.fromCharCode(value.charCodeAt(i) ^ SESSION_SALT.charCodeAt(i % SESSION_SALT.length));
+  return out;
+}
+function sessionUnwrap(value){ return sessionWrap(value); }
+
+const encodedPhases = [{"id": 0, "label": "FASE 1", "name": "Recon Azul", "icon": "&#128269;", "mitre": "T1078 — Valid Accounts", "desc": "Identificar usuários e recursos suspeitos via CLI", "terminal": [{"t": "cli-line", "v": "$ aws iam list-users --output table"}, {"t": "cli-output", "v": "+------------------+-------------------+----------------------------+\n| UserName         | UserId            | CreateDate                 |\n+------------------+-------------------+----------------------------+\n| admin.joao       | AIDA3XKPL12       | 2024-10-01T09:00:00Z       |\n| deploy.pipeline  | AIDA7MNBV88       | 2024-11-15T14:30:00Z       |\n| svc-backup-temp-01| AIDAZZ99XKQ01   | 2025-04-28T23:51:33Z ⚠    |\n| maria.ops        | AIDA2QRST56       | 2024-09-20T08:00:00Z       |\n+------------------+-------------------+----------------------------+"}, {"t": "cli-line", "v": "$ aws iam list-access-keys --user-name svc-backup-temp-01"}, {"t": "cli-output", "v": "AccessKeyId: AKIAZZ99XKQBACKDOOR1\nStatus: Active\nCreateDate: 2025-04-28T23:51:33Z\nLastUsedDate: 2025-04-29T04:17:22Z ← uso fora da janela operacional"}, {"t": "cli-line", "v": "$ aws s3 ls"}, {"t": "cli-output", "v": "2024-09-01  company-logs-archive\n2024-09-01  company-static-assets\n2024-09-15  company-financial-data  ← bucket sensível\n2025-04-28  temp-exfil-staging      ← bucket recém-criado"}, {"t": "cli-warn", "v": "ANOMALIA: identidade de serviço temporária criada fora do padrão de mudança"}, {"t": "cli-err", "v": "ANOMALIA: recurso de staging criado logo após a nova identidade IAM"}], "questionX": "EAcPFwYTJBECCxccDSMVNg8HFg1dQxJFRD0ABQcNElYgHABECRYyBk9FAgZMLkU6DxIAX0JCV0JMkMav10JW8PpIAEQiNggwQwMcAVknRScEBQtEUVFfU0MnBFM=", "optionsX": ["HEgPCwISYRAVBl4RTCEOJhFLEUhfQB8GHHMMCQZIFVZzAQ8SCgQ1CgQEsNTu4QpzEQkXXEdVElBCNARMEEJWUTIbBAgGGSRDBwBTAEgwEzoCA0VMUVNdQ0MnEkwESAReMgYEChsSMk0=", "HEgABwwSMhBDDhYKDSMROhcJRUgSQldV7voMQQFZH186EgAAAFcoDQcMEBINMAwgAglFXV1CQ0NIcwIDGlkXQHMMBEQcEjMVCqbUHA0mACUEFAxMXxBGU19zEwMATLWUkMsORApXNREKCRsSDSYAcwwTAUxc85VXAw==", "EkgCCx0FJA8CptSwji1FJwQLFUJAUV4WSD0VHhENFUE6CaLDrNQuQwcEUxpJJwsnCAIESVccEkNePEEKG18XEzcNQQ4OGSQPAkUWU083BjgEEkVJVxBBQkw0CAITDQVGNA0TAU8UIAcGDBJTSSdFMA4LFV9dXVdCRD4EAgBCWA==", "EkgEHAYENaDJCxAaTGIBNkETCA1QRVFdSCdBCh1DF10wDQgWAFcyBg0WsN5bJwlzABMISFxEUxZCcwgBBEwVRzxIEQsbEi8ACgQfU0hiACsIAQANQFVEX16QwgNURBtWNwEAEA5XJQZDFRYBQCsWIKLTAF4c"], "correctX": "YQ==", "feedbackX": {"correct": "FhAAEABZYTcMARIADSMWcwAKEUhAXlNCRCUAH1RetZA8SAUBCRIvEKDEBRZEMUlzDAcWDVMQX1dEIEEKG18CVnOryEQOVyIMERcWH0yBwpDCCV8NW1RXWFk6BQ0QSFZdPB4ASE8CMgxDAxwBTGIBMkEMBENXXFMWSHMCHh1MtZSQyw5ECxJhARYGGBZZYgE2QRURTFVZXFEDcyQBVEQYRTYbFQ0IFoLEoMYcXw0nEzYPEgoNW0NdWkw3Dky3hFZaPQyiyQweLlhDFhYCWIHPPQIPBA1RX1dESD0VCVTu3xMiHQAXClc0DgJFEgBeKwsyFRMXTBJUXRZMJwAdAUhY", "wrong": "AwQAERy07BUGCV9TQCMWcw+lxkIS85sWTHMMCRhFGUF9SC5EHxgvFwxFHhJEMUU1DhQRSBJe8ZVCc6LFVFgbE5DSDw0MGGECEREWFUw2CmhBpcwNUxBRV0k2CA1UWRNeIwcTBQNXJA0XFxZTRCYAPRUPAUxWVR4WTiEECBFDFVoyBEEBTwQ1AgQMHRQDYic/FANFeVdRXxZbOhcJVEkTEzAHExYKGyCgxKbQHAFiC5DCCUVJVxBBQ102Ex8ARLWUkMsORAwYLEMNCh4WDSQAOg5I"}}, {"id": 1, "label": "FASE 2", "name": "CloudTrail Forense", "icon": "&#128220;", "mitre": "T1530 — Data from Cloud Storage", "desc": "Analisar logs CloudTrail para reconstruir a timeline", "terminal": [{"t": "cli-comment", "v": "# cloudtrail_logs.json — eventos das últimas 48h"}, {"t": "cli-line", "v": "$ cat cloudtrail_logs.json | jq '.[] | select(.sourceIPAddress==\"185.220.101.47\")'"}, {"t": "cli-output", "v": "{\n  \"eventTime\": \"2025-04-27T14:22:11Z\",\n  \"eventName\": \"GetObject\",\n  \"userIdentity\": { \"userName\": \"admin.joao\" },\n  \"sourceIPAddress\": \"185.220.101.47\",\n  \"requestParameters\": { \"bucketName\": \"company-financial-data\" }\n}"}, {"t": "cli-warn", "v": "⚠ Usuário legítimo acessando de Tor node; trate como credencial abusada até prova em contrário"}, {"t": "cli-line", "v": "$ cat cloudtrail_logs.json | jq '.[] | select(.eventName==\"CreateAccessKey\")'"}, {"t": "cli-output", "v": "{\n  \"eventTime\": \"2025-04-28T23:51:33Z\",\n  \"eventName\": \"CreateAccessKey\",\n  \"userIdentity\": { \"userName\": \"admin.joao\" },\n  \"requestParameters\": { \"userName\": \"svc-backup-temp-01\" },\n  \"sourceIPAddress\": \"185.220.101.47\"\n}"}, {"t": "cli-line", "v": "$ cat cloudtrail_logs.json | jq '.[] | .eventName' | sort | uniq -c | sort -rn"}, {"t": "cli-output", "v": "    47  GetObject\n    12  AssumeRole\n     8  PutObject\n     3  PutBucketPolicy\n     2  CreateAccessKey\n     1  CreateUser"}, {"t": "cli-err", "v": "CONFIRMADO: mesma origem externa usa usuário legítimo e depois cria identidade de persistência"}, {"t": "cli-highlight", "v": "PLOT TWIST: o usuário suspeito foi criado por uma identidade legítima comprometida"}], "questionX": "Ah0ACE8fKBOg1gcWXidFNhkWCURRURJ7aB8pIyYNGRMlDRULHVcoDQoGGhJBbkUgBAtFSEpEQFddPA0NBg0XX5DBDEQLGGEgDwoGF3kwBDoNRgRdQFVBU0MnAAgbEg==", "optionsX": ["BwcKAQFXMwYTCRIKDS0QcwAEEF5dEFZTDSAEHwfu1VxzDgQACgUgBwJJUwNCMBQmBEYN7pMQR0VCcwUJVEQSVj0cCAAOEyRDDwAUsIA2DD4ARgQNQlFAQkQhQQgRDRlBOg8ECU8WL6DXCBIfTGw=", "EAcMFB0YLAYXDB4WQzYKcwUDRU5AVVZTQzAIDRgNBkE8DxMFArTgFwoGElNJJ0UyBQsMQxxaXVdCf0EcG18HRjZIDkQCEjIODEUDAUQsBjoRBwkNV0hXVVgnAEwzSAJ8MQIEBxtXJEMgFxYSWSckMAIDFl55VUsWTHMRDQZZH0FzDA5EAhIyDgxFOiMNJx0nBBQLQhw=", "AwERAQMeLwZDJjpcbgZFMA4LFV9dXVdCRDcOQFRdGUEiHQRELAUkAhcAMhBOJxYgKgMcDVFfQUJYPgBMFV0XQTYLBBZPEixDAhAHHEAjpvSi0wBeEl1TWg0jEwMASBFaNwkSSg==", "AwAIFwceLwRDBhweDS4KNAgIRURcRFdETCcIGhsBVkM8GhARClcuQwIREhBMLBE2QQcCREcQUVlAPEEZB1i1kiEBDkQDEiagzhEaHkJiBD0VAxYNVlUSVV86AB5UXRNBIAESEKzdLwAKBF0="], "correctX": "Yg==", "feedbackX": {"correct": "Aw0TAgoeNQxNRSccSSMWcxKlxkISWFtG7uAVCQdIBRMjBxIXrNo3BgoWUxZAYgw9Ag8BSFxEV0UNIQQNHV5aEz4JEkQAVwIPDBAXJ18jDD9BCwpeRkJTUkJzEhkHWRNdJwlBCQobKQwRRRIRWDEKcwUDRU5AVVZTQzAIDRgNBkE8DxMFArTgFwoGElNJLUUyBQsMQxxaXVdCaUEBEV4bXHMYEw0BFCgTAglfU0AnFj4ORix9HhBT9YqQ1AkHDQBaMkggNCZXJEMAFxoS7uWm8A5GFUJBRFdERDwTTBBIVlEyCwoAABgzTQ==", "wrong": "EQcARAceMaDQERYASG5FPgAVRUtTXEZZWHMACBFftZk9CwgFTxYuQw8KFF0NDUUiFANFQhJUU1JCcwwDB1kEUnMLDglPGiAKEEUVHF+BwjJBpcwNR11TFk4hBAgRQxVaMgRBFB0YJhECCLDSWSsGMkECAA1TVF9fQ30LAxVCVkA2BgULTxYjFhAEFxINI0UjABQRREAQVlcNPgQfGUxWXCEBBgECW2ECDREWAA0mBHMCFAxM8ZfxlUJzBQNUTxdQOAwOCx1Z"}}, {"id": 2, "label": "FASE 3", "name": "Persistência", "icon": "&#128373;", "mitre": "T1098 — Account Manipulation | T1078 — Valid Accounts", "desc": "Detectar backdoors e mecanismos de persistência", "terminal": [{"t": "cli-line", "v": "$ aws iam get-role --role-name ShadowAdminRole"}, {"t": "cli-output", "v": "{\n  \"RoleName\": \"ShadowAdminRole\",\n  \"AssumeRolePolicyDocument\": {\n    \"Statement\": [{\n      \"Effect\": \"Allow\",\n      \"Principal\": { \"AWS\": \"*\" },\n      \"Action\": \"sts:AssumeRole\"\n    }]\n  }\n}"}, {"t": "cli-err", "v": "CRÍTICO: trust policy aberta para qualquer principal AWS"}, {"t": "cli-line", "v": "$ aws iam list-attached-role-policies --role-name ShadowAdminRole"}, {"t": "cli-output", "v": "PolicyName: AdministratorAccess"}, {"t": "cli-line", "v": "$ aws lambda list-functions | grep -i shadow"}, {"t": "cli-output", "v": "FunctionName: shadow-credential-refresh\nRuntime: python3.11\nHandler: index.recreate_access_key\nLastModified: 2025-04-29T01:33:00Z"}, {"t": "cli-line", "v": "$ aws events list-rules | grep shadow"}, {"t": "cli-output", "v": "Name: shadow-keepalive\nScheduleExpression: rate(24 hours)\nTarget: shadow-credential-refresh"}, {"t": "cli-highlight", "v": "PERSISTÊNCIA detectada em camadas: usuário, role permissiva e automação de recriação"}, {"t": "cli-warn", "v": "O atacante não deixou só uma chave; deixou uma fábrica de chaves"}], "questionX": "HQlBAR0FIAcKBhKwioHGPE1GFFhTXBJGSCESBQdZtZk9CwgFTwMkDkMoMjpiEEUwCQcLTlcQVlMNIA4OBkgAWiUNE0QOVzQOAkUBFl4yCiAVB0VEXFNdW10/BBgVEg==", "optionsX": ["BhsUp84FKAxDLDI+DSAEMAoCCkJAEFFZQHMADxdIBUBzAwQdTxY1ChUEX1NdLRciFANFTl1eRl9DJgBMAu7XXzoMDkQKGTAWAgsHHA0spvAORgNCQBBXTl0/CA8dWRdeNgYVAU8FJA4MExoXQmw=", "AQcNAU8ULg5DEQEGXjZFIw4KDE5LEFNbXT8ATBENN1c+AQ8NHAMzAhcKATJOIQAgEkpFXV1CQ0NIcxEJBkAfRzZIEwEOBDIWDgwBU10wDCUICqaEVVldFl08E0wbWAJBPEgRFgYZIgoTBB9d", "HwkMBgsWYQIADBwdTCYEcxEJFw13RldYWRETBRBKExMjCRMFTwUkABEMEgENIRc2BQMLTltRW0UBcxEDBlwDVnMaBAcAGjGg1gBTHA0jBjYSFQoNX1VBW0JzABy3ngUTIQcVBazQgsAMRRwGDTAAJQ4BBO6V85FZDSMOAgBYF199", "GgYNDQESbgIXERIQRScBcxEJCURRWVdFDTIFAR1DH0AnGgAQBgEgEE9FAxxfMxA2QQsEQ0bzmFsNPEEPFUAfXTsHQQAKVzERChMaH+7rAjoORghIQV1dFkwjot8HDRdZJhsVAU8HIBEADBIfDSYAcxQVEO6TQltZXn0="], "correctX": "YQ==", "feedbackX": {"correct": "EA0TEKzaMhAKCBxdDRYKNwAVRV7xk10WXTYTBRNCBVIgREEJDgRhAkMEBgdCLwSQxqXGQhJ8U1tPNwBMXw0zRTYGFSYdHiUEBkWw2g0jRT4ADxYNRkJTX+70DgkdXxcJcw0NBU8FJAARDBJTQmIEMAQVFkISVFdGQjoSTAVYExMyBAYRrN4sQwIGGxINMxA2QRQAXl1cRFNYfUGv/Q0GViEbCBcbtOsNAAwSU0IyACEABQxCXFFeGg09os8bDQXw4EgRAR0aKBAQptAcDTAQOgxI", "wrong": "FQkbRBwSLxcKARxfDS8EIEEHRUBTWUEWTiGiwQBEFVJzGAAWDlcyDAEXFgVENAAhQQdFWF9REkRIIBEDB1kXEzoGAgsCBy0GFwRTsIRiBHMAExFCX1Hxke7wDkJUfxNFPA8AFk8UKQIVAFMASC9FPgASBF8SXxJbSDAAAh1eG1xzGRQBTwUkABEMElNOKgQlBEamhBJVXE5YNAAeVEoTXzxIAgsCVzEPAgsaH0UjRTcERgRYVllGWV86AEwVTxNBJwlP"}}, {"id": 3, "label": "FASE 4", "name": "Exfiltração", "icon": "&#128190;", "mitre": "T1530 — Data from Cloud Storage | TA0010 — Exfiltration", "desc": "Mapear dados acessados e exfiltrados", "terminal": [{"t": "cli-line", "v": "$ aws s3api list-objects --bucket company-financial-data --query 'Contents[].{Key:Key,Size:Size}'"}, {"t": "cli-output", "v": "Q4-2024-revenue-consolidated.xlsx    (2.3 MB)\nQ1-2025-forecast-board-deck.pdf     (8.1 MB)\npayroll-march-2025-all-employees.csv (1.1 MB)\nM&A-target-analysis-confidential.docx (4.7 MB)\ninvestor-data-private-round.json    (0.9 MB)"}, {"t": "cli-line", "v": "$ aws s3api get-bucket-logging --bucket company-financial-data"}, {"t": "cli-output", "v": "LoggingEnabled: false"}, {"t": "cli-warn", "v": "Sem server access logs no bucket. Dependendo de CloudTrail data events e SIEM para visibilidade"}, {"t": "cli-line", "v": "$ aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=company-financial-data"}, {"t": "cli-output", "v": "2025-04-27T14:22:11Z  GetObject  Q4-2024-revenue-consolidated.xlsx     185.220.101.47\n2025-04-27T14:22:48Z  GetObject  Q1-2025-forecast-board-deck.pdf      185.220.101.47\n2025-04-27T14:23:01Z  GetObject  payroll-march-2025-all-employees.csv 185.220.101.47\n2025-04-27T14:23:44Z  GetObject  M&A-target-analysis-confidential.docx 185.220.101.47\n2025-04-28T02:11:33Z  PutObject  [bucket: temp-exfil-staging]          185.220.101.47\nTOTAL: ~17.1 MB | 5 arquivos | janela aproximada: 90 segundos"}, {"t": "cli-err", "v": "Impacto: dados financeiros, folha de pagamento e M&A acessados"}, {"t": "cli-highlight", "v": "Classificação: impacto crítico; envolve dados pessoais e informação corporativa sensível"}], "questionX": "Ah0ACE8ULg4BDB0S7uWm8A5GAUgSXFNVWD0AH1RIDkM/AQIFTzoELysqIVNdLRdzEBMADVMQV05LOg0YBky1lJDLDkQBtOIMQxMaAUI3RTINAxdZUxBXWw0nBAEEQlZCJgkSAU8FJAIPWg==", "optionsX": ["Eh0Sp8UZIgoCRRcWDQ8jEkEiAEFXRFcWSHMXCQZeH1w9CQwBAQMuT0MVHAFcNwBzDkYEWVNTU1hZNkEcG0kTQToJQQUfFiYCEUUcBg0xEDESEgxZR1lAFkIxCwkAQgUTMhii1xxXLkMCBhYAXi1L", "Eh0Sp8UZIgoCRRcWDQEJPBQCMV9TWV4WSTIVDVRIAFY9HBJEHxYzAkM2QFNeJwsgossTSF4QW1hZNgYeFUkXEzIHQTcmMgxDAAoeU18nAiEARgFIEl9AX0o2DEwVQ7WHPgkNBU8SYRUMCQYeSGIMPQIJCFhfHg==", "Eh0Sp8UZIgoCRRcWDRE2FkwtKH4SU11bDRAsJ1RJE1c6CwAADlthEwwXAgZIYgYhCBYRQlVCU1BEMkEFGV0TVzoaCAVPBjQCDxQGFl9iCTYIEhBfUxBbWEk2FwUQTFZXPBtBCw0dJBcMFl0=", "Eh0Sp8UZIgoCRRcWDRQ1EEEjC0lCX1tYWXMODgZEEVInq9IWBhhhDQxFEQZOKQAnTUYVQkBBR1MNMkEDBkQRVj5IBBwbEjMNAkUdsI4tRTcEEABfW1ESVUI9EhkYWRdBcztSRB8SLQJDDB0HSDALNhVGFe6IUl5fTjJP"], "correctX": "Yg==", "feedbackX": {"correct": "FhAAEABZYTAGFwUWX2IEMAIDFl4SXF1RSjoPC1RMHEY3CU1EOScCQwYLFwNCKwsnQQcPWFZRHhZmHjJMFUcDVzJTQQkOBGETAhcSU0wuACEVB0VcR1FBUw0hBA0YDQVcMRoERCgSNSwBDxYQWWIWNg8VpoBEVV4aDTxBHBtDAlxzCwgWrM0zBAoGHFPu60UQDQkQSWZCU19BcwUNAExWViUNDxAcVy8MQzZAU04wpv4VDwZCEllcQkg0Ew0QQlZSPEgyLSo6YQAMCFMXSDYAMKLBpo5dEFZTDTwTBRNIGxM2SBcLAwIsBk0=", "wrong": "EQcARB8FgsIXDBASAWIIMhJGC+6RXxL1hHMATBFVBl86CwCnyLTiDEMIEhpeYgE6EwMRTBJAU0RMcwBMEkwaRzJIBQFPFi0GERESXQ0NRTQAFkVOV15GREw/Qa/dDQJWPw0MARsFKAJDARZTSSMRMkEDE0hcREEWSTxBP0cNBVY9G6LJGRItQwANFhRMLAE8QQcKDWF5d3sNMA4BVF8TVCEJQQAKVyUGFwAQsIqBxjxBpd9ZW1wc"}}, {"id": 4, "label": "FASE 5", "name": "Resposta IR", "icon": "&#128293;", "mitre": "Containment & Eradication", "desc": "Executar contenção, erradicação e recuperação", "terminal": [{"t": "cli-comment", "v": "# RUNBOOK DE RESPOSTA — ordem importa"}, {"t": "cli-line", "v": "$ aws iam delete-access-key --user-name svc-backup-temp-01 --access-key-id AKIAZZ99XKQBACKDOOR1"}, {"t": "cli-output", "v": "✓ Access key revogada"}, {"t": "cli-line", "v": "$ aws lambda delete-function --function-name shadow-credential-refresh"}, {"t": "cli-output", "v": "✓ Lambda maliciosa removida"}, {"t": "cli-line", "v": "$ aws events delete-rule --name shadow-keepalive"}, {"t": "cli-output", "v": "✓ EventBridge schedule removido"}, {"t": "cli-line", "v": "$ aws iam delete-role --role-name ShadowAdminRole"}, {"t": "cli-output", "v": "✓ Role maliciosa removida"}, {"t": "cli-line", "v": "$ aws iam update-access-key --user-name admin.joao --access-key-id AKIA... --status Inactive"}, {"t": "cli-output", "v": "✓ Credenciais de admin.joao rotacionadas"}, {"t": "cli-warn", "v": "⚠ admin.joao é identidade comprometida; trate como vítima e vetor, não como prova de culpa"}, {"t": "cli-line", "v": "$ aws s3 rb s3://temp-exfil-staging --force"}, {"t": "cli-output", "v": "✓ Bucket de staging removido"}, {"t": "cli-err", "v": "ATENÇÃO: acione DPO/jurídico; há dados pessoais e material corporativo sensível no escopo"}], "questionX": "Ah0ACE8EJBIWptkdTisEc6LPRUwSfXN/fnMACBFcA1I3CUEUDgUgQxEAAANCMREyTUYVX1dDV0RbMg8IGw0VXD0cBAqs0ILADEUWU1sjCTwTRgNCQFVcRUhs", "optionsX": ["EAcNARsWM0MGExoX7ugLMAgHFg1f859YRD4AH1gNFVw9HAQWTxQzBgcAHRBEIwwgQQcRRERRQRoNIQQBG1sTQXMYBBYcHjIXoM8dEEQjSXMRFABeV0JEV19zDQMTXlZQPAURCAoDLhBPRRIQRC0LMhNGIX19H1hDX5DMCB1OGRM2SAILAgIvCgAEAVNOLQs1DhQISBJRRFdBOgCv0+7VXHMMBEQGGjECABEcXQ==", "AQ0MCxkSM0MXChccXmIKIEETFljxkUBfQiBBHwFeBlY6HA4XTx4sBgcMEgdMLwA9FQNJDVZVQUJfJggeVF8TUCYaEgscVywCDwwQGkIxCiBBA0VJV0BdX15zEwkXQhhAJxoUDR1XIEMXDB4WQSsLNkEFCkASX0EWQTwGH1RcA1ZzGw4GHRYzBg5L", "HQcVDQkeIgIRRTcjYm0kHTEiRV1AWV9TRCEOQFRAF10nDRNEAFcgDgEMFh1ZJ0U6DxIETkZfEkZMIQBMEkIEVj0bBEQKVzKg0EUXFl0tDCBBFABbXVdTRA0wEwkQSBhQOgkIF08HIBECRR2wji1FMg0SAF9TQhJTWzoFr95DFVoyG08=", "Fw0SBRseNwIRRRJTTi0LJwBGJHphEFtYWTYIHhUBVkchBwIFHVc1DAcEAFNMMUUgBAgNTEEQUVlfIw4eFVkfRTIbQQFPBSQCARcaAQ0tRTIMBAxIXERXFkwjot8HDQBSPwEFBazQgsAMRR4SQzcEP0ECCl4SRFtbSCBP"], "correctX": "Yw==", "feedbackX": {"correct": "Aw0TAgoeNQxNRTJTXycWIw4VEUwSXVNSWCEATBru1Vxzq8hEHBYoEUMEAxJKIws3DkYRWFZfElhIPkEIEUQOUiFIDkQOAyAAAgsHFg0yBCASAwRDVl8SRkwhAEwEXxNANhoXBR1XJBUKAbDZQyEMMk9GJkJeVUZXDT6iwRpEG1J/SAILAQMkDaDCsNBCbkU2ExQESVtTU/WKkMIDWA0GQTYbBBYZFoLEoMYcU0wvFT8ARgANVV9EU189AAK3ihcTIQ0GEQMWNaDQFxoSDSwEcxIDFFjxmlxVRDJBDxtfBFYnCU8=", "wrong": "Ah0AFwpbYQ4CFlMWXjEEcw4UAUhfEFFERDJBHh1eFVx9SDMBHAcuEBcEUxFCI0U2EBMMQVtSQFcNIwAeFV9WXHMbAAoIBSAOBgsHHA0nRSMTAxZIQEZTRA02FwUQ7txdMAEASk85JA5DCAYASDdFNQ4UAENBVRJVQj5BDQBMFVI9HAREDgMoFQxJUx1IL0U1AB4MQ1MQQ0NIcwUJB1kE8OABQRQdGDcCTQ=="}}, {"id": 5, "label": "FASE 6", "name": "Hardening", "icon": "&#128737;", "mitre": "Prevention & Detection", "desc": "Implementar controles para evitar recorrência", "terminal": [{"t": "cli-comment", "v": "# CONTROLES PÓS-INCIDENTE — fechar a porta, a janela e o alçapão"}, {"t": "cli-line", "v": "$ aws iam create-policy --policy-name RequireMFA ..."}, {"t": "cli-output", "v": "✓ Política MFA obrigatória criada\n  Condition: aws:MultiFactorAuthPresent = true"}, {"t": "cli-line", "v": "$ aws cloudtrail put-event-selectors --trail-name global-audit --event-selectors ..."}, {"t": "cli-output", "v": "✓ CloudTrail data events habilitados para buckets sensíveis"}, {"t": "cli-line", "v": "$ aws guardduty create-detector --enable --finding-publishing-frequency FIFTEEN_MINUTES"}, {"t": "cli-output", "v": "✓ GuardDuty habilitado para detecção de Tor, credential abuse e chamadas incomuns"}, {"t": "cli-line", "v": "$ aws accessanalyzer create-analyzer --analyzer-name org-analyzer --type ORGANIZATION"}, {"t": "cli-output", "v": "✓ IAM Access Analyzer habilitado para detectar exposição externa"}, {"t": "cli-line", "v": "$ aws organizations create-policy --type SERVICE_CONTROL_POLICY --name DenyWildcardTrustAndUnapprovedKeys"}, {"t": "cli-output", "v": "✓ SCP para reduzir criação indevida de trust amplo e credenciais fora de padrão"}, {"t": "cli-highlight", "v": "Score de Maturidade Pós-Hardening: 78/100"}, {"t": "cli-warn", "v": "O controle perfeito não existe; o controle visível, testável e monitorado já salva muita gente"}], "questionX": "Ah0ACE8ULg0JEB0HQmIBNkEFCkNGQl1aSCBBGBFfH1JzGgQAGg0oBwxFPjJkEUU8QRQMXlFfElJIIBUJVEQYUDoMBAobEmEGEBUWEO7vAzoCCUVMXERXRQ03AEwRVQZfPBoAp8i04gxc", "optionsX": ["ADskSSQ6EkMACh5Tbg8ucwUDAURRUVZXAXMDABtcA1Y6B0EUrM0jDwoGHFNJJ0UAUkpFW1dCQV9CPQABEUMCXHMNQSkpNmEnBgkWB0hiFTITB0VfV1RHTEQhQQUZXRdQJwdBAQJXJQIHCgBTTDAIMhsDC0xWX0EY", "ACsxRB8WMwJDCRoeRDYEIUEFF0RT85X1jjxBCBENF1AwDRIXTxwkGhBJUz5rA0U8AxQMSlNE8YVfOg5DF0IYVzoLCAsBFi1PQyIGEl8mISYVH0VIEnNeWVg3NR4VRBoTNwkVBU8SNwYNEQBTXSMXMkECAFlXU0ZXX3MADgFeGRM3DUEHHRIlBg0GGhJBYgBzBB4DRF5EQFfu9KLPGwM=", "BCknRAEYYSIzLFM0TDYAJAAfSQ1AUUZTDT8IAR1ZVlZzGBMLGxKCxKDGHFNiFSQAMUYxQkIQAwYNIwAeFQ0fXiMNBQ0dVyQbEwkcAUyBwpDCCUVJUxBTRkE6Ag23irWQPEgWAQ1XJQZDAB0HXyMBMk8=", "BTgiRAoZJRMMDB0HXmIKMRMPAkxG84FERDwSQFRPA1A4DRVEHxgtCgAcUwNCMEU8Ew8CSF8QUVlfIw4eFVkfRTJIBEQ8EiIWEQwHCg0FFzwUFhYNQFVBQl86FQUCQgUTIwkTBU8FJAcWHxoBDSMGNhIVCg1UX0BXDTcATAZIElZzDRIUCgUgBwJL"], "correctX": "Yg==", "feedbackX": {"correct": "FhAAEABZYTcMARIADSMPJgUHCA1XXRJXQTQUAVRIH0s8REEJDgRhDEMEBxJcNwBzBwkMDVNSR0VCcwUJVE4EVjcNDwcGFi1DKiQ+UwZiBiEIB6aK8ZNdFkk2QRwRXwVaIByizgEUKAJDTlMfSCsRJhMHRX4BHhJzQyeizxsNGRM+DQ0MAAVhEwIGHAdIYqb6QQUKQ0ZCXVpIcxEeEVsTXScBFwtPEyRDABcWF0gsBjoADxYBEn10dwIwDgIQRLWUkMsOSE8TJBcGBrDU7uEKcyYTBF9WdEdCVHMETAJEBVoxAQ0NCxYlBkMBFlNJIxEyQQMTSFxEQRg=", "wrong": "EQcARB8FgsIXDBASAWIIMhJGCEhcX0EWTD8IAhxMElJzCQ5EGRI1DBFFAwFELAY6EQcJAxJ/El9DMAgIEUMCVnMGABcMEjRDBghTEF8nATYPBQxMXhB7d2BzAA4BXhdXMkgERBkeMwwWRQMWXzEMIBWlz0NRWVMZSCsHBRhZBFKQz6LHAExhEwwXUxpeMQpzDhVFTl1eRkRCPwQfVEkTExopLEhPEyQXBgaw1O7hCnMFA0VOQFVWU0MnCA0YDRdRJhsERApXJQIXBFMWWycLJxJGFu6RXxJZXnMMDR1eVlA2GhUBBgUuEE0="}}];
+const phases = encodedPhases.map(p => {
+  const opts = p.optionsX.map((x,idx)=>({t: sessionWrap(xorB64Decode(x)), idx}));
+  return {
+    ...p,
+    question: sessionWrap(xorB64Decode(p.questionX)),
+    options: opts,
+    correctToken: sessionWrap(xorB64Decode(p.correctX)),
+    feedback: { correct: sessionWrap(xorB64Decode(p.feedbackX.correct)), wrong: sessionWrap(xorB64Decode(p.feedbackX.wrong)) }
+  };
+});
+
+let current = 0;
+let answered = Array(phases.length).fill(null);
+let unlocked = 1;
+let correct = 0;
+let startTime = Date.now();
+let timerInterval;
+let optionOrder = {};
+let certificateName = '';
+
+function formatTime(ms){
+  let s=Math.floor(ms/1000);
+  let m=Math.floor(s/60);s=s%60;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+timerInterval = setInterval(()=>{
+  const badge = document.getElementById('timer-badge');
+  if(badge) badge.textContent = formatTime(Date.now()-startTime);
+},1000);
+
+function updateScore(){
+  let total = answered.filter(a=>a!==null).length;
+  let pct = total===0?0:Math.round((correct/total)*100);
+  document.getElementById('score-display').textContent = pct+'%';
+  document.getElementById('score-detail').textContent = `${correct} / ${total} corretas`;
+}
+
+function shuffleArray(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+
+const cliState = {
+  contained:false,
+  persistenceRemoved:false,
+  hardening:false
+};
+
+function appendTerminalLine(cls, value){
+  const term = document.getElementById('terminal');
+  const line = document.createElement('div');
+  line.className = cls;
+  line.textContent = value;
+  term.appendChild(line);
+  term.scrollTop = term.scrollHeight;
+}
+
+function appendTerminalBlock(cls, value){
+  const term = document.getElementById('terminal');
+  const line = document.createElement('div');
+  line.className = cls;
+  line.textContent = value;
+  line.style.whiteSpace = 'pre-wrap';
+  term.appendChild(line);
+  term.scrollTop = term.scrollHeight;
+}
+
+function normalizeCmd(cmd){
+  return (cmd || '').trim().replace(/\s+/g,' ');
+}
+
+function runCliCommand(){
+  const input = document.getElementById('cli-input');
+  if(!input) return;
+  const raw = input.value;
+  const cmd = normalizeCmd(raw);
+  if(!cmd) return;
+  input.value = '';
+  appendTerminalLine('cli-line', '$ ' + cmd);
+  const lower = cmd.toLowerCase();
+
+  if(lower === 'clear'){
+    document.getElementById('terminal').innerHTML = '<div class="cli-comment"># Terminal limpo. Digite help para ver comandos disponíveis.</div>';
+    return;
+  }
+  if(lower === 'help' || lower === '?'){
+    appendTerminalBlock('cli-info', `Comandos aceitos no laboratório:\n  help\n  clear\n  whoami\n  aws iam list-users --output table\n  aws iam list-access-keys --user-name svc-backup-temp-01\n  aws s3 ls\n  cat cloudtrail_logs.json\n  cat cloudtrail_logs.json | jq '.[] | select(.sourceIPAddress=="185.220.101.47")'\n  cat cloudtrail_logs.json | jq '.[] | select(.eventName=="CreateAccessKey")'\n  aws iam get-role --role-name ShadowAdminRole\n  aws iam list-attached-role-policies --role-name ShadowAdminRole\n  aws lambda list-functions | grep -i shadow\n  aws events list-rules | grep shadow\n  aws s3api list-objects --bucket company-financial-data\n  aws s3api get-bucket-logging --bucket company-financial-data\n  aws cloudtrail lookup-events --lookup-attributes AttributeKey=ResourceName,AttributeValue=company-financial-data\n  Comandos de resposta/hardening também funcionam: delete-access-key, delete-function, delete-rule, delete-role, update-access-key, s3 rb, guardduty, accessanalyzer, cloudtrail put-event-selectors.`);
+    return;
+  }
+  if(lower === 'whoami'){
+    appendTerminalBlock('cli-output', 'operator: incident.responder\nrole: CloudSec-IR-ReadWrite-Lab\nscope: simulação controlada Shadow Access');
+    return;
+  }
+  if(lower === 'pwd'){
+    appendTerminalLine('cli-output', '/incident/shadow-access');
+    return;
+  }
+  if(lower === 'ls'){
+    appendTerminalBlock('cli-output', 'cloudtrail_logs.json\nrunbook_ir.md\niam_findings.json\ns3_impact_report.txt');
+    return;
+  }
+  if(lower.includes('aws iam list-users')){
+    appendTerminalBlock('cli-output', `+-------------------+-------------------+----------------------------+\n| UserName          | UserId            | CreateDate                 |\n+-------------------+-------------------+----------------------------+\n| admin.joao        | AIDA3XKPL12       | 2024-10-01T09:00:00Z       |\n| deploy.pipeline   | AIDA7MNBV88       | 2024-11-15T14:30:00Z       |\n| svc-backup-temp-01 | AIDAZZ99XKQ01     | 2025-04-28T23:51:33Z  ⚠   |\n| maria.ops         | AIDA2QRST56       | 2024-09-20T08:00:00Z       |\n+-------------------+-------------------+----------------------------+`);
+    return;
+  }
+  if(lower.includes('list-access-keys')){
+    appendTerminalBlock('cli-output', `AccessKeyMetadata:\n  UserName: svc-backup-temp-01\n  AccessKeyId: AKIAZZ99XKQBACKDOOR1\n  Status: ${cliState.contained ? 'Inactive' : 'Active'}\n  CreateDate: 2025-04-28T23:51:33Z\n  LastUsedDate: 2025-04-29T04:17:22Z`);
+    return;
+  }
+  if(lower === 'aws s3 ls' || lower.includes('aws s3 ls')){
+    appendTerminalBlock('cli-output', `2024-09-01  company-logs-archive\n2024-09-01  company-static-assets\n2024-09-15  company-financial-data\n${cliState.contained ? '' : '2025-04-28  temp-exfil-staging'}`.trim());
+    return;
+  }
+  if(lower.startsWith('cat cloudtrail_logs.json') && !lower.includes('jq')){
+    appendTerminalBlock('cli-output', `[{"eventTime":"2025-04-27T14:22:11Z","eventName":"GetObject","userIdentity":{"userName":"admin.joao"},"sourceIPAddress":"185.220.101.47","requestParameters":{"bucketName":"company-financial-data","key":"Q4-2024-revenue-consolidated.xlsx"}},\n {"eventTime":"2025-04-28T23:51:33Z","eventName":"CreateAccessKey","userIdentity":{"userName":"admin.joao"},"sourceIPAddress":"185.220.101.47","requestParameters":{"userName":"svc-backup-temp-01"}},\n {"eventTime":"2025-04-29T01:33:00Z","eventName":"CreateFunction","userIdentity":{"userName":"svc-backup-temp-01"},"requestParameters":{"functionName":"shadow-credential-refresh"}}]`);
+    return;
+  }
+  if(lower.includes('sourceipaddress') || lower.includes('185.220.101.47')){
+    appendTerminalBlock('cli-output', `{"eventTime":"2025-04-27T14:22:11Z","eventName":"GetObject","userIdentity":{"userName":"admin.joao"},"sourceIPAddress":"185.220.101.47","requestParameters":{"bucketName":"company-financial-data"}}\n{"eventTime":"2025-04-28T23:51:33Z","eventName":"CreateAccessKey","userIdentity":{"userName":"admin.joao"},"sourceIPAddress":"185.220.101.47","requestParameters":{"userName":"svc-backup-temp-01"}}`);
+    appendTerminalLine('cli-warn', 'Correlação forte: mesmo IP externo usando identidade legítima e criando persistência.');
+    return;
+  }
+  if(lower.includes('createaccesskey')){
+    appendTerminalBlock('cli-output', `{"eventTime":"2025-04-28T23:51:33Z","eventName":"CreateAccessKey","userIdentity":{"userName":"admin.joao"},"requestParameters":{"userName":"svc-backup-temp-01"},"sourceIPAddress":"185.220.101.47"}`);
+    return;
+  }
+  if(lower.includes('get-role') && lower.includes('shadowadminrole')){
+    appendTerminalBlock('cli-output', `RoleName: ShadowAdminRole\nAssumeRolePolicyDocument:\n  Effect: Allow\n  Principal: { AWS: "*" }\n  Action: sts:AssumeRole\nRisk: trust policy ampla para principal externo`);
+    return;
+  }
+  if(lower.includes('list-attached-role-policies') && lower.includes('shadowadminrole')){
+    appendTerminalLine('cli-output', cliState.persistenceRemoved ? 'NoSuchEntity: role ShadowAdminRole não existe' : 'PolicyName: AdministratorAccess');
+    return;
+  }
+  if(lower.includes('lambda list-functions')){
+    appendTerminalBlock('cli-output', cliState.persistenceRemoved ? 'Nenhuma função shadow encontrada.' : 'FunctionName: shadow-credential-refresh\nRuntime: python3.11\nHandler: index.recreate_access_key\nLastModified: 2025-04-29T01:33:00Z');
+    return;
+  }
+  if(lower.includes('events list-rules')){
+    appendTerminalBlock('cli-output', cliState.persistenceRemoved ? 'Nenhuma rule shadow encontrada.' : 'Name: shadow-keepalive\nScheduleExpression: rate(24 hours)\nTarget: shadow-credential-refresh');
+    return;
+  }
+  if(lower.includes('s3api list-objects') && lower.includes('company-financial-data')){
+    appendTerminalBlock('cli-output', `Q4-2024-revenue-consolidated.xlsx     2.3 MB\nQ1-2025-forecast-board-deck.pdf      8.1 MB\npayroll-march-2025-all-employees.csv 1.1 MB\nM&A-target-analysis-confidential.docx 4.7 MB\ninvestor-data-private-round.json     0.9 MB`);
+    return;
+  }
+  if(lower.includes('get-bucket-logging')){
+    appendTerminalLine('cli-output', 'LoggingEnabled: false');
+    appendTerminalLine('cli-warn', 'Gap: sem server access logging no bucket sensível.');
+    return;
+  }
+  if(lower.includes('cloudtrail lookup-events')){
+    appendTerminalBlock('cli-output', `2025-04-27T14:22:11Z  GetObject  Q4-2024-revenue-consolidated.xlsx     185.220.101.47\n2025-04-27T14:22:48Z  GetObject  Q1-2025-forecast-board-deck.pdf      185.220.101.47\n2025-04-27T14:23:01Z  GetObject  payroll-march-2025-all-employees.csv 185.220.101.47\n2025-04-27T14:23:44Z  GetObject  M&A-target-analysis-confidential.docx 185.220.101.47\n2025-04-28T02:11:33Z  PutObject  temp-exfil-staging                  185.220.101.47\nTOTAL: ~17.1 MB | 5 arquivos | janela aproximada: 90 segundos`);
+    return;
+  }
+  if(lower.includes('delete-access-key')){
+    cliState.contained = true;
+    appendTerminalLine('cli-output', '✓ Access key revogada/inativada no estado simulado.');
+    return;
+  }
+  if(lower.includes('delete-function') || lower.includes('delete-rule') || lower.includes('delete-role')){
+    cliState.persistenceRemoved = true;
+    appendTerminalLine('cli-output', '✓ Artefato de persistência removido no estado simulado.');
+    return;
+  }
+  if(lower.includes('update-access-key')){
+    cliState.contained = true;
+    appendTerminalLine('cli-output', '✓ Credencial do usuário legítimo comprometido marcada como Inactive.');
+    return;
+  }
+  if(lower.includes('s3 rb') && lower.includes('temp-exfil-staging')){
+    cliState.contained = true;
+    appendTerminalLine('cli-output', '✓ Bucket temp-exfil-staging removido no estado simulado.');
+    return;
+  }
+  if(lower.includes('guardduty') || lower.includes('accessanalyzer') || lower.includes('put-event-selectors') || lower.includes('create-policy') || lower.includes('organizations create-policy')){
+    cliState.hardening = true;
+    appendTerminalLine('cli-output', '✓ Controle de hardening aplicado no estado simulado.');
+    return;
+  }
+  if(lower.startsWith('aws ')){
+    appendTerminalLine('cli-err', 'Comando AWS não implementado neste lab. Digite help para ver os comandos aceitos.');
+    return;
+  }
+  appendTerminalLine('cli-err', 'command not found: ' + cmd + '  | dica: digite help');
+}
+
+document.addEventListener('keydown', function(e){
+  const input = document.getElementById('cli-input');
+  if(!input) return;
+  if(e.key === 'Enter' && document.activeElement === input){
+    e.preventDefault();
+    runCliCommand();
+  }
+});
+
+function renderSidebar(){
+  const list = document.getElementById('phase-list');
+  list.innerHTML = phases.map((p,i)=>{
+    let cls = 'phase-btn';
+    if(i===current) cls+=' active';
+    if(i>=unlocked && answered[i]===null) cls+=' locked';
+    if(answered[i]==='correct') cls+=' done';
+    return `<button class="${cls}" onclick="selectPhase(${i})" ${i>=unlocked && answered[i]===null?'disabled':''}>
+      <span class="phase-icon">${answered[i]==='correct'?'&#10003;':p.icon}</span>
+      <div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:1px">${p.label}</div>
+        <div style="font-size:11px">${p.name}</div>
+      </div>
+    </button>`;
+  }).join('');
+}
+
+function selectPhase(i){
+  if(i>=unlocked && answered[i]===null) return;
+  current = i;
+  renderSidebar();
+  renderPhase();
+}
+
+function renderPhase(){
+  const p = phases[current];
+  document.getElementById('phase-title').innerHTML = `${p.label} — ${p.name} <span class="mitre-tag">${p.mitre}</span>`;
+  document.getElementById('phase-desc').textContent = p.desc;
+
+  const term = document.getElementById('terminal');
+  term.innerHTML = p.terminal.map((l,i)=>`<div class="${l.t} replay-line" style="animation-delay:${i*0.05}s">${l.v}</div>`).join('');
+  setTimeout(()=>{ term.scrollTop = term.scrollHeight; },300);
+  renderQuestion();
+}
+
+function getOrderedOptions(phaseIdx){
+  if(!optionOrder[phaseIdx]) optionOrder[phaseIdx] = shuffleArray(phases[phaseIdx].options);
+  return optionOrder[phaseIdx];
+}
+
+function renderQuestion(){
+  const p = phases[current];
+  const bottom = document.getElementById('bottom-area');
+  const progressPct = Math.round((current/phases.length)*100);
+
+  if(answered[current]==='correct'||answered[current]==='wrong'){
+    const isCorrect = answered[current]==='correct';
+    const allDone = answered.filter(a=>a!==null).length===phases.length;
+    bottom.innerHTML = `
+      <div class="progress-bar"><div class="progress-fill" style="width:${progressPct}%"></div></div>
+      <div class="feedback ${isCorrect?'fb-correct':'fb-wrong'}">${sessionUnwrap(p.feedback[isCorrect?'correct':'wrong'])}</div>
+      <button class="retry-btn" onclick="retryCurrentPhase()">REFAZER ESTA FASE</button>
+      ${!allDone ? `<button class="next-btn" onclick="nextPhase()" style="margin-top:8px">${current<phases.length-1?'PRÓXIMA FASE ▶':'VER RESULTADO ▶'}</button>` : `<button class="next-btn" onclick="showCert()" style="margin-top:8px">&#127942; VER CERTIFICADO</button>`}
+    `;
+  } else {
+    const ordered = getOrderedOptions(current);
+    bottom.innerHTML = `
+      <div class="progress-bar"><div class="progress-fill" style="width:${progressPct}%"></div></div>
+      <div class="question-area">
+        <div class="question-text">&#10067; ${sessionUnwrap(p.question)} <button class="hint-btn" onclick="showHint(${current})">dica</button></div>
+        <div class="options">
+          ${ordered.map((o,i)=>`<button class="opt-btn" onclick="answer(${current},${o.idx})">${String.fromCharCode(65+i)}) ${sessionUnwrap(o.t)}</button>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+}
+
+function showHint(i){
+  const hints = [
+    'Não olhe só para um artefato. Correlacione identidade, horário, credencial e recurso criado.',
+    'Procure o mesmo principal, a mesma origem e a sequência de chamadas antes da persistência.',
+    'Persistência perigosa é a que volta depois que você acha que removeu.',
+    'Para alertar GetObject sensível, você precisa telemetria de data event chegando ao SIEM.',
+    'Contenha o acesso ativo sem destruir o valor forense da investigação.',
+    'Escolha controles alinhados ao vetor: credencial IAM abusada, persistência e leitura S3.'
+  ];
+  alert('DICA: ' + hints[i]);
+}
+
+function answer(phaseIdx, optIdx){
+  const p = phases[phaseIdx];
+  const isCorrect = String(optIdx) === sessionUnwrap(p.correctToken);
+  answered[phaseIdx] = isCorrect?'correct':'wrong';
+  recalcCorrect();
+  updateScore();
+
+  if(phaseIdx+1 < phases.length && unlocked <= phaseIdx+1) unlocked = phaseIdx+2;
+  renderSidebar();
+  renderQuestion();
+}
+
+function recalcCorrect(){ correct = answered.filter(a=>a==='correct').length; }
+
+function retryCurrentPhase(){
+  answered[current] = null;
+  optionOrder[current] = shuffleArray(phases[current].options);
+  recalcCorrect();
+  updateScore();
+  renderSidebar();
+  renderQuestion();
+}
+
+function nextPhase(){
+  if(current < phases.length-1){
+    current++;
+    unlocked = Math.max(unlocked, current+1);
+    renderSidebar();
+    renderPhase();
+  } else showCert();
+}
+
+async function sha256(message){
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  return Array.from(new Uint8Array(hashBuffer)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+
+function showCert(){
+  const total = phases.length;
+  const pct = Math.round((correct/total)*100);
+  const pass = pct >= 70;
+  const elapsed = formatTime(Date.now()-startTime);
+  clearInterval(timerInterval);
+
+  const term = document.getElementById('terminal');
+  term.innerHTML = '';
+
+  const bottom = document.getElementById('bottom-area');
+  bottom.style.padding = '0';
+  bottom.style.overflow = 'auto';
+  bottom.style.maxHeight = '480px';
+
+  document.getElementById('phase-title').textContent = pass ? '🏆 CERTIFICAÇÃO LIBERADA' : '⚠ TENTE NOVAMENTE';
+  document.getElementById('phase-desc').textContent = `Score final: ${pct}% | Tempo: ${elapsed} | ${pass?'APROVADO — mínimo 70%':'REPROVADO — mínimo 70%'}`;
+
+  bottom.innerHTML = `<div class="cert-area">
+    <div class="cert-box" style="${pass?'':'border-color:var(--red)'}">
+      <div class="cert-title" style="${pass?'':'color:var(--red)'}">${pass?'SHADOW ACCESS — BE SAFE':'ACESSO NEGADO'}</div>
+      <div class="cert-sub">CERTIFICADO DE CONCLUSÃO</div>
+      ${pass ? `
+        <div class="cert-input-wrap">
+          <label class="cert-label" for="student-name">DIGITE SEU NOME PARA O CERTIFICADO</label>
+          <input class="cert-input" id="student-name" maxlength="80" placeholder="Nome completo" value="${escapeHtml(certificateName)}">
+          <div class="cert-note">O certificado só é gerado com nome preenchido. Hash SHA-256 calculado localmente.</div>
+        </div>
+        <button class="next-btn" onclick="generateCertificateHash('${elapsed}', ${pct})">GERAR CERTIFICADO</button>
+        <div id="certificate-output" style="margin-top:12px"></div>` : `
+        <div style="color:var(--red);margin:16px 0">Score: ${pct}% — necessário mínimo 70%</div>
+        <div style="color:var(--muted);font-size:11px">Revise as fases e tente novamente.<br>O atacante não vai esperar você estudar.</div>
+        <button class="next-btn" onclick="resetChallenge()" style="margin-top:16px;background:var(--red)">TENTAR NOVAMENTE</button>`}
+    </div>
+  </div>`;
+}
+
+async function generateCertificateHash(elapsed, pct){
+  const input = document.getElementById('student-name');
+  const name = (input?.value || '').trim().replace(/\s+/g,' ');
+  if(!name){
+    alert('Digite o nome da pessoa para gerar o certificado. Sem nome, sem glória.');
+    input?.focus();
+    return;
+  }
+  certificateName = name;
+  const issuedAt = new Date().toISOString();
+  const hash = await sha256(`${name}|Shadow Access - Be Safe|${pct}|${elapsed}|${issuedAt}|Mariana BS Instrutora`);
+  const out = document.getElementById('certificate-output');
+  out.innerHTML = `
+    <div class="cert-name">Certificamos que <strong>${escapeHtml(name)}</strong> concluiu o desafio com ${pct}% de acerto</div>
+    <div class="cert-hash">SHA-256: ${hash}</div>
+    <div>
+      <span class="cert-badge">Incident Response em Cloud</span>
+      <span class="cert-badge">IAM Security</span>
+      <span class="cert-badge">Threat Detection</span>
+      <span class="cert-badge">Hardening AWS</span>
+      <span class="cert-badge">MITRE ATT&amp;CK</span>
+      <span class="cert-badge">LGPD Compliance</span>
+    </div>
+    <div style="margin-top:12px;font-size:9px;color:var(--muted)">Tempo de conclusão: ${elapsed} | Emitido em: ${new Date(issuedAt).toLocaleString('pt-BR')}</div>
+    <div class="cert-sig">Mariana BS (Instrutora)</div>
+    <div style="font-size:9px;color:var(--muted);margin-top:4px">Shadow Access – Be Safe</div>`;
+}
+
+function resetChallenge(){
+  answered = Array(phases.length).fill(null);
+  unlocked = 1;
+  correct = 0;
+  current = 0;
+  optionOrder = {};
+  startTime = Date.now();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(()=>{
+    document.getElementById('timer-badge').textContent = formatTime(Date.now()-startTime);
+  },1000);
+  const bottom = document.getElementById('bottom-area');
+  bottom.style.padding = '';
+  bottom.style.overflow = '';
+  bottom.style.maxHeight = '';
+  updateScore();
+  renderSidebar();
+  const term = document.getElementById('terminal');
+  term.innerHTML = `<div class="cli-comment"># Sistema reiniciado. O atacante ainda está lá.</div>
+    <div class="cli-comment"># Selecione uma fase para recomeçar.</div>`;
+  bottom.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:11px">▶ Selecione uma fase para iniciar</div>';
+  document.getElementById('phase-title').textContent = 'Aguardando operativo...';
+  document.getElementById('phase-desc').textContent = 'Selecione uma fase para iniciar a investigação';
+  selectPhase(0);
+}
+
+function startChallenge(){
+  const intro = document.getElementById('intro-screen');
+  const app = document.querySelector('.app');
+  if(intro) intro.style.display = 'none';
+  if(app) app.style.display = 'block';
+  startTime = Date.now();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(()=>{
+    document.getElementById('timer-badge').textContent = formatTime(Date.now()-startTime);
+  },1000);
+  renderSidebar();
+  updateScore();
+  selectPhase(0);
+}
+
+renderSidebar();
+updateScore();
+// O desafio inicia pela tela de introdução.
+</script>
