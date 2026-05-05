@@ -75,6 +75,10 @@ body{font-family:var(--font-mono,'Courier New',monospace)}
 .retry-btn{width:100%;background:#111827;color:var(--amber);border:1px solid var(--amber);font-family:var(--font-mono,'Courier New',monospace);font-size:11px;font-weight:700;padding:8px;border-radius:6px;cursor:pointer;letter-spacing:1px;margin-top:8px}
 .retry-btn:hover{background:#ffaa0011}
 .cert-note{font-size:9px;color:var(--muted);margin-top:6px;line-height:1.4}
+.cert-actions{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}
+.cert-download-btn{width:100%;background:var(--amber);color:#000;border:none;font-family:var(--font-mono,'Courier New',monospace);font-size:11px;font-weight:700;padding:9px;border-radius:6px;cursor:pointer;letter-spacing:1px}
+.cert-download-btn:hover{opacity:.88}
+.certificate-card{background:#0a1f0a;border:2px solid var(--green);border-radius:12px;padding:22px;margin:0 auto;color:var(--text)}
 
 .cli-inputbar{background:#06080f;border-top:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:8px}
 .cli-prompt{color:var(--green);font-size:11px;font-weight:700}
@@ -197,6 +201,7 @@ body{font-family:var(--font-mono,'Courier New',monospace)}
 </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 const BUILD_SALT = "ShadowAccess-BeSafe-2026-Salt-v3";
 const SESSION_SALT = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b=>b.toString(16).padStart(2,'0')).join('');
@@ -590,19 +595,61 @@ async function generateCertificateHash(elapsed, pct){
   const hash = await sha256(`${name}|Shadow Access - Be Safe|${pct}|${elapsed}|${issuedAt}|Mariana BS Instrutora`);
   const out = document.getElementById('certificate-output');
   out.innerHTML = `
-    <div class="cert-name">Certificamos que <strong>${escapeHtml(name)}</strong> concluiu o desafio com ${pct}% de acerto</div>
-    <div class="cert-hash">SHA-256: ${hash}</div>
-    <div>
-      <span class="cert-badge">Incident Response em Cloud</span>
-      <span class="cert-badge">IAM Security</span>
-      <span class="cert-badge">Threat Detection</span>
-      <span class="cert-badge">Hardening AWS</span>
-      <span class="cert-badge">MITRE ATT&amp;CK</span>
-      <span class="cert-badge">LGPD Compliance</span>
+    <div id="certificate-card" class="certificate-card">
+      <div class="cert-title">SHADOW ACCESS — BE SAFE</div>
+      <div class="cert-sub">CERTIFICADO DE CONCLUSÃO</div>
+      <div class="cert-name">Certificamos que <strong>${escapeHtml(name)}</strong> concluiu o desafio com ${pct}% de acerto</div>
+      <div class="cert-hash">SHA-256: ${hash}</div>
+      <div>
+        <span class="cert-badge">Incident Response em Cloud</span>
+        <span class="cert-badge">IAM Security</span>
+        <span class="cert-badge">Threat Detection</span>
+        <span class="cert-badge">Hardening AWS</span>
+        <span class="cert-badge">MITRE ATT&amp;CK</span>
+        <span class="cert-badge">LGPD Compliance</span>
+      </div>
+      <div style="margin-top:12px;font-size:9px;color:var(--muted)">Tempo de conclusão: ${elapsed} | Emitido em: ${new Date(issuedAt).toLocaleString('pt-BR')}</div>
+      <div class="cert-sig">Mariana BS (Instrutora)</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:4px">Shadow Access – Be Safe</div>
     </div>
-    <div style="margin-top:12px;font-size:9px;color:var(--muted)">Tempo de conclusão: ${elapsed} | Emitido em: ${new Date(issuedAt).toLocaleString('pt-BR')}</div>
-    <div class="cert-sig">Mariana BS (Instrutora)</div>
-    <div style="font-size:9px;color:var(--muted);margin-top:4px">Shadow Access – Be Safe</div>`;
+    <div class="cert-actions">
+      <button class="cert-download-btn" onclick="downloadCertificatePng()">BAIXAR CERTIFICADO EM PNG</button>
+    </div>`;
+}
+
+async function downloadCertificatePng(){
+  const card = document.getElementById('certificate-card');
+  if(!card){
+    alert('Gere o certificado primeiro. Sem certificado, sem PNG.');
+    return;
+  }
+  if(typeof html2canvas === 'undefined'){
+    alert('A biblioteca de exportação não carregou. Verifique a internet/CDN e tente novamente.');
+    return;
+  }
+  const button = document.querySelector('.cert-download-btn');
+  const oldText = button ? button.textContent : '';
+  if(button) button.textContent = 'GERANDO PNG...';
+  try{
+    const canvas = await html2canvas(card, {
+      backgroundColor: '#0a1f0a',
+      scale: 3,
+      useCORS: true,
+      logging: false
+    });
+    const link = document.createElement('a');
+    const safeName = (certificateName || 'certificado').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-|-$/g,'').toLowerCase() || 'certificado';
+    link.download = `shadow-access-be-safe-${safeName}.png`;
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }catch(err){
+    console.error(err);
+    alert('Não consegui gerar o PNG neste navegador. Tente novamente ou confira se o CDN do html2canvas carregou.');
+  }finally{
+    if(button) button.textContent = oldText || 'BAIXAR CERTIFICADO EM PNG';
+  }
 }
 
 function resetChallenge(){
