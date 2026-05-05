@@ -1,3 +1,9 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operação Shadow Access - Be Safe</title>
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -78,7 +84,13 @@ body{font-family:var(--font-mono,'Courier New',monospace)}
 .cert-actions{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}
 .cert-download-btn{width:100%;background:var(--amber);color:#000;border:none;font-family:var(--font-mono,'Courier New',monospace);font-size:11px;font-weight:700;padding:9px;border-radius:6px;cursor:pointer;letter-spacing:1px}
 .cert-download-btn:hover{opacity:.88}
-.certificate-card{background:#0a1f0a;border:2px solid var(--green);border-radius:12px;padding:22px;margin:0 auto;color:var(--text)}
+ .certificate-card{background:#0a1f0a;border:2px solid var(--green);border-radius:12px;padding:24px;margin:0 auto;color:var(--text);max-width:760px;text-align:center}
+.cert-meta{margin:12px auto;padding:10px;border:1px solid #00ff8833;border-radius:8px;background:#061406;font-size:10px;line-height:1.6;color:#dcefe6;text-align:left}
+.cert-summary{margin:14px auto;padding:12px;border:1px solid #ffaa0044;border-radius:8px;background:#120d03;color:#f5dfae;font-size:10px;line-height:1.65;text-align:left}
+.cert-summary strong{color:#fff}
+.cert-signature-line{width:220px;height:1px;background:#ffaa0066;margin:18px auto 6px}
+.cert-sig{color:var(--amber);font-size:15px;margin-top:8px;font-style:italic;font-weight:700}
+.cert-footer{font-size:9px;color:var(--muted);margin-top:4px;line-height:1.5}
 
 .cli-inputbar{background:#06080f;border-top:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:8px}
 .cli-prompt{color:var(--green);font-size:11px;font-weight:700}
@@ -105,6 +117,8 @@ body{font-family:var(--font-mono,'Courier New',monospace)}
 @media(max-width:760px){.intro-grid{grid-template-columns:1fr}.intro-title{font-size:22px}.intro-card{padding:20px}}
 
 </style>
+</head>
+<body>
 
 
 <div id="intro-screen" class="intro-screen">
@@ -585,38 +599,63 @@ function showCert(){
 async function generateCertificateHash(elapsed, pct){
   const input = document.getElementById('student-name');
   const name = (input?.value || '').trim().replace(/\s+/g,' ');
-  if(!name){
-    alert('Digite o nome da pessoa para gerar o certificado. Sem nome, sem glória.');
+  if(!name || name.length < 3){
+    alert('Digite um nome válido para gerar o certificado. Sem nome decente, sem glória auditável.');
     input?.focus();
     return;
   }
   certificateName = name;
-  const issuedAt = new Date().toISOString();
-  const hash = await sha256(`${name}|Shadow Access - Be Safe|${pct}|${elapsed}|${issuedAt}|Mariana BS Instrutora`);
+  const issuedAt = new Date();
+  const issuedIso = issuedAt.toISOString();
+  const completionDate = issuedAt.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+  const completionDateTime = issuedAt.toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' });
+  const hash = await sha256(`${name}|Shadow Access - Be Safe|${pct}|${elapsed}|${issuedIso}|${BUILD_SALT}|Mariana BS - Instrutora`);
+  const shortHash = hash.slice(0, 12).toUpperCase();
   const out = document.getElementById('certificate-output');
   out.innerHTML = `
     <div id="certificate-card" class="certificate-card">
       <div class="cert-title">SHADOW ACCESS — BE SAFE</div>
       <div class="cert-sub">CERTIFICADO DE CONCLUSÃO</div>
-      <div class="cert-name">Certificamos que <strong>${escapeHtml(name)}</strong> concluiu o desafio com ${pct}% de acerto</div>
-      <div class="cert-hash">SHA-256: ${hash}</div>
+      <div class="cert-name">Certificamos que <strong>${escapeHtml(name)}</strong> concluiu a atividade prática com <strong>${pct}%</strong> de aproveitamento.</div>
+
+      <div class="cert-meta">
+        <div><strong>Data de conclusão:</strong> ${completionDate}</div>
+        <div><strong>Data/hora de emissão:</strong> ${completionDateTime}</div>
+        <div><strong>Tempo de conclusão:</strong> ${elapsed}</div>
+        <div><strong>Identificador de validação:</strong> SHA256-${shortHash}</div>
+        <div><strong>Hash SHA-256:</strong></div>
+        <div class="cert-hash">${hash}</div>
+      </div>
+
+      <div class="cert-summary">
+        <strong>Resumo das competências desenvolvidas na atividade:</strong><br><br>
+        • Investigação de incidente em ambiente AWS + SaaS híbrido.<br>
+        • Análise de IAM, usuários suspeitos, access keys e abuso de credenciais válidas.<br>
+        • Correlação forense com CloudTrail, timeline de ataque e evidências por origem suspeita.<br>
+        • Identificação de persistência via IAM Role, Lambda e EventBridge.<br>
+        • Mapeamento de exfiltração em S3 e classificação de impacto sobre dados sensíveis.<br>
+        • Execução de resposta a incidentes: contenção, erradicação e recuperação.<br>
+        • Aplicação de hardening com MFA, CloudTrail Data Events, GuardDuty, Access Analyzer e SCP.<br><br>
+        <em>Simulação prática baseada em cenário de comprometimento cloud, com foco em evidência, priorização e decisão técnica.</em>
+      </div>
+
       <div>
         <span class="cert-badge">Incident Response em Cloud</span>
         <span class="cert-badge">IAM Security</span>
-        <span class="cert-badge">Threat Detection</span>
-        <span class="cert-badge">Hardening AWS</span>
+        <span class="cert-badge">CloudTrail Forense</span>
+        <span class="cert-badge">S3 Exfiltration</span>
         <span class="cert-badge">MITRE ATT&amp;CK</span>
-        <span class="cert-badge">LGPD Compliance</span>
+        <span class="cert-badge">Hardening AWS</span>
       </div>
-      <div style="margin-top:12px;font-size:9px;color:var(--muted)">Tempo de conclusão: ${elapsed} | Emitido em: ${new Date(issuedAt).toLocaleString('pt-BR')}</div>
-      <div class="cert-sig">Mariana BS (Instrutora)</div>
-      <div style="font-size:9px;color:var(--muted);margin-top:4px">Shadow Access – Be Safe</div>
+
+      <div class="cert-signature-line"></div>
+      <div class="cert-sig">Mariana BS - Instrutora</div>
+      <div class="cert-footer">Cybersecurity Engineer • Be Safe<br>Shadow Access — Be Safe</div>
     </div>
     <div class="cert-actions">
       <button class="cert-download-btn" onclick="downloadCertificatePng()">BAIXAR CERTIFICADO EM PNG</button>
     </div>`;
 }
-
 async function downloadCertificatePng(){
   const card = document.getElementById('certificate-card');
   if(!card){
@@ -697,3 +736,6 @@ renderSidebar();
 updateScore();
 // O desafio inicia pela tela de introdução.
 </script>
+
+</body>
+</html>
